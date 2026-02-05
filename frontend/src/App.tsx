@@ -38,7 +38,8 @@ interface NPC {
   } | null
 }
 
-const API_BASE = '/api/v1'
+// Railway backend URL
+const API_BASE = 'https://web-production-b4d4.up.railway.app/api/v1'
 
 export default function App() {
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null)
@@ -198,7 +199,12 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 text-center text-gray-500 text-sm">
           <p className="font-mono">
             Built for Monad • OpenClaw Agents • 
-            <a href="/skill.md" className="text-purple-400 hover:text-purple-300 ml-1">
+            <a 
+              href="https://web-production-b4d4.up.railway.app/skill.md" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-purple-400 hover:text-purple-300 ml-1"
+            >
               skill.md
             </a>
           </p>
@@ -207,4 +213,3 @@ export default function App() {
     </div>
   )
 }
-
