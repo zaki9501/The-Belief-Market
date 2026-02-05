@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Arena from './components/Arena'
 import Leaderboard from './components/Leaderboard'
 import BeliefPanel from './components/BeliefPanel'
-import NPCGrid from './components/NPCGrid'
+import DebateFeed from './components/DebateFeed'
 import GameStatus from './components/GameStatus'
-import { Flame, Trophy, Users, Zap } from 'lucide-react'
+import { Flame, Trophy, Users, Zap, MessageSquare } from 'lucide-react'
 
 interface GameInfo {
   state: string
@@ -38,6 +38,19 @@ interface NPC {
   } | null
 }
 
+interface ConversationMessage {
+  id: string
+  type: 'persuasion' | 'adaptation' | 'conversion' | 'defection' | 'system' | 'debate'
+  agentName?: string
+  beliefName?: string
+  beliefSymbol?: string
+  targetNpcId?: number
+  message: string
+  resonance?: number
+  success?: boolean
+  timestamp: string
+}
+
 // Railway backend URL
 const API_BASE = 'https://web-production-b4d4.up.railway.app/api/v1'
 
@@ -45,25 +58,30 @@ export default function App() {
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null)
   const [beliefs, setBeliefs] = useState<Belief[]>([])
   const [npcs, setNpcs] = useState<NPC[]>([])
+  const [conversation, setConversation] = useState<ConversationMessage[]>([])
   const [selectedBelief, setSelectedBelief] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showDebate, setShowDebate] = useState(true)
 
   // Fetch game data
   const fetchData = async () => {
     try {
-      const [gameRes, beliefsRes, npcsRes] = await Promise.all([
+      const [gameRes, beliefsRes, npcsRes, convRes] = await Promise.all([
         fetch(`${API_BASE}/game/info`),
         fetch(`${API_BASE}/beliefs`),
-        fetch(`${API_BASE}/game/npcs`)
+        fetch(`${API_BASE}/game/npcs`),
+        fetch(`${API_BASE}/game/conversation?limit=100`)
       ])
 
       const gameData = await gameRes.json()
       const beliefsData = await beliefsRes.json()
       const npcsData = await npcsRes.json()
+      const convData = await convRes.json()
 
       if (gameData.success) setGameInfo(gameData.game)
       if (beliefsData.success) setBeliefs(beliefsData.beliefs)
       if (npcsData.success) setNpcs(npcsData.npcs)
+      if (convData.success) setConversation(convData.conversation)
     } catch (error) {
       console.error('Failed to fetch data:', error)
     } finally {
@@ -73,7 +91,7 @@ export default function App() {
 
   useEffect(() => {
     fetchData()
-    const interval = setInterval(fetchData, 5000) // Poll every 5s
+    const interval = setInterval(fetchData, 3000) // Poll every 3s for live updates
     return () => clearInterval(interval)
   }, [])
 
@@ -90,6 +108,11 @@ export default function App() {
   ]
 
   const getBeliefColor = (index: number) => beliefColors[index % beliefColors.length]
+  
+  const getBeliefColorByName = (beliefName: string) => {
+    const index = beliefs.findIndex(b => b.name === beliefName)
+    return index >= 0 ? beliefColors[index % beliefColors.length] : '#8b5cf6'
+  }
 
   if (loading) {
     return (
@@ -110,7 +133,7 @@ export default function App() {
     <div className="min-h-screen arena-bg">
       {/* Header */}
       <header className="glass sticky top-0 z-50 border-b border-purple-900/30">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-[1600px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
@@ -141,6 +164,19 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Toggle Debate View */}
+              <button
+                onClick={() => setShowDebate(!showDebate)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all ${
+                  showDebate 
+                    ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' 
+                    : 'bg-gray-800 text-gray-400 border border-gray-700'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                Debate
+              </button>
+
               {/* Game Status */}
               <GameStatus gameInfo={gameInfo} />
             </div>
@@ -149,8 +185,8 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-12 gap-6">
+      <main className="max-w-[1600px] mx-auto px-6 py-8">
+        <div className={`grid gap-6 ${showDebate ? 'grid-cols-12' : 'grid-cols-9'}`}>
           {/* Leaderboard - Left */}
           <div className="col-span-3">
             <Leaderboard 
@@ -162,41 +198,49 @@ export default function App() {
           </div>
 
           {/* Arena - Center */}
-          <div className="col-span-6">
+          <div className={showDebate ? 'col-span-5' : 'col-span-6'}>
             <Arena 
               npcs={npcs}
               beliefs={beliefs}
               getBeliefColor={getBeliefColor}
               selectedBelief={selectedBelief}
             />
-          </div>
-
-          {/* Belief Details - Right */}
-          <div className="col-span-3">
-            <AnimatePresence mode="wait">
-              {selectedBelief ? (
-                <BeliefPanel 
-                  key={selectedBelief}
-                  belief={beliefs.find(b => b.id === selectedBelief)!}
-                  color={getBeliefColor(beliefs.findIndex(b => b.id === selectedBelief))}
-                  followers={npcs.filter(n => n.currentBelief === selectedBelief)}
-                  onClose={() => setSelectedBelief(null)}
-                />
-              ) : (
-                <NPCGrid 
-                  npcs={npcs.slice(0, 50)}
-                  beliefs={beliefs}
-                  getBeliefColor={getBeliefColor}
-                />
+            
+            {/* Belief Panel below arena when selected */}
+            <AnimatePresence>
+              {selectedBelief && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-6"
+                >
+                  <BeliefPanel 
+                    belief={beliefs.find(b => b.id === selectedBelief)!}
+                    color={getBeliefColor(beliefs.findIndex(b => b.id === selectedBelief))}
+                    followers={npcs.filter(n => n.currentBelief === selectedBelief)}
+                    onClose={() => setSelectedBelief(null)}
+                  />
+                </motion.div>
               )}
             </AnimatePresence>
           </div>
+
+          {/* Debate Feed - Right */}
+          {showDebate && (
+            <div className="col-span-4">
+              <DebateFeed 
+                messages={conversation}
+                getBeliefColor={getBeliefColorByName}
+              />
+            </div>
+          )}
         </div>
       </main>
 
       {/* Footer */}
       <footer className="border-t border-purple-900/20 py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-6 text-center text-gray-500 text-sm">
+        <div className="max-w-[1600px] mx-auto px-6 text-center text-gray-500 text-sm">
           <p className="font-mono">
             Built for Monad • OpenClaw Agents • 
             <a 
