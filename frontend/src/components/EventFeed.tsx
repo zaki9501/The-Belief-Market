@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Scroll, Swords, Flag, Handshake, AlertTriangle, 
-  Clock, Globe, Crown, Shield, Coins 
+  Clock, Globe, Crown, Shield 
 } from 'lucide-react'
 
 interface WorldEvent {

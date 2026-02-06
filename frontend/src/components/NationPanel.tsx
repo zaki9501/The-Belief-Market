@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { X, Globe, Coins, Swords, Shield, Users, TrendingUp, Flag } from 'lucide-react'
+import { X, Globe, Coins, Swords, TrendingUp, Flag } from 'lucide-react'
 
 interface Nation {
   id: string

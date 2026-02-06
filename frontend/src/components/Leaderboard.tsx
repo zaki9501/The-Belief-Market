@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Trophy, Crown, Swords, Coins, Globe, TrendingUp } from 'lucide-react'
+import { Trophy, Crown, Swords, Coins, Globe } from 'lucide-react'
 
 interface LeaderboardEntry {
   rank: number
@@ -61,8 +61,7 @@ export default function Leaderboard({ entries, getNationColor, selectedNation, o
                   }
                 `}
                 style={{ 
-                  borderLeft: `4px solid ${color}`,
-                  ringColor: isSelected ? color : undefined
+                  borderLeft: `4px solid ${color}`
                 }}
               >
                 <div className="flex items-center gap-3">

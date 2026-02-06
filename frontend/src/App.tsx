@@ -5,7 +5,7 @@ import Leaderboard from './components/Leaderboard'
 import EventFeed from './components/EventFeed'
 import NationPanel from './components/NationPanel'
 import WorldStats from './components/WorldStats'
-import { Globe, Trophy, Scroll, Swords, Users } from 'lucide-react'
+import { Globe, Scroll, Swords, Users } from 'lucide-react'
 
 interface WorldState {
   epoch: number

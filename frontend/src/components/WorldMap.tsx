@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Mountain, TreePine, Waves, Sun, Wheat, Shield, Users, Zap, Coins, Pickaxe } from 'lucide-react'
+import { Mountain, TreePine, Waves, Sun, Wheat, Shield, Users, Zap, Coins, Hammer } from 'lucide-react'
 
 interface Region {
   id: string
@@ -59,7 +59,7 @@ export default function WorldMap({ regions, getNationColor, selectedRegion, onSe
 
       {/* Map Grid */}
       <div className="grid grid-cols-5 gap-2 mb-4">
-        {regions.map((region, index) => {
+        {regions.map((region) => {
           const color = getNationColor(region.owner)
           const isSelected = selectedRegion === region.id
           
@@ -150,7 +150,7 @@ export default function WorldMap({ regions, getNationColor, selectedRegion, onSe
               <p className="font-mono text-sm text-white">{selected.resources.gold}</p>
             </div>
             <div className="text-center">
-              <Pickaxe className="w-4 h-4 mx-auto text-slate-400 mb-1" />
+              <Hammer className="w-4 h-4 mx-auto text-slate-400 mb-1" />
               <p className="text-xs text-gray-400">Minerals</p>
               <p className="font-mono text-sm text-white">{selected.resources.minerals}</p>
             </div>
